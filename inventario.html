@@ -110,7 +110,7 @@
   <div class="container">
     <h2>Inventario Montilla</h2>
     <video id="preview" autoplay playsinline></video>
-    <div class="info-qr">Escanea una etiqueta que contenga los datos separados por "/". Ejemplo: <strong>Zona/Producto/Medidas</strong></div>
+    <div class="info-qr">Escanea una etiqueta que contenga los datos separados por "/". Ejemplo: <strong>Zona/DetalleZona</strong></div>
 
     <form id="formulario">
       <label for="descripcion">Descripción</label>
@@ -138,7 +138,7 @@
 
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbz9KZu_6IwW_4Quvc-i5mJZNoI8RZnEza49yN4a9Vo/dev";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzKlbzxmNvo042w51-RvJx35vu-xHgFF0SCyuge7KGyZqkLOYxC1R2Ho9LSAKcweLQ0/exec";
 
     let zonaLeida = "";
     let usuario = sessionStorage.getItem("usuario") || "";
