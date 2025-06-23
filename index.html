@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inventario Montilla</title>
+  <title>Inventario Montilla - Login</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -93,7 +93,7 @@
   </div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbwCket6uwOyT6McMmoUw7zsQ0lEVIvc-CgBI24HD2ZK5ZcVKXaiDdPxXqh9HRMS6RKF/exec";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbz9KZu_6IwW_4Quvc-i5mJZNoI8RZnEza49yN4a9Vo/dev";
 
     async function iniciarSesion() {
       const usuario = document.getElementById("usuario").value;
@@ -112,7 +112,7 @@
         if (data.success) {
           sessionStorage.setItem("usuario", usuario);
           sessionStorage.setItem("zona", data.zona);
-          window.location.href = "index.html";
+          window.location.href = "scanner.html";
         } else {
           mensaje.textContent = "Usuario o contraseña incorrectos.";
         }
@@ -129,6 +129,3 @@
   </script>
 </body>
 </html>
-
-
-
