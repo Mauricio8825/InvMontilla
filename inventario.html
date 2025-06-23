@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #ffffff;
+      background-color: #ffffff;
       margin: 0;
       padding: 0;
       display: flex;
@@ -88,28 +88,33 @@
       display: block;
       margin-left: auto;
       margin-right: auto;
-      width: 80%;
+      width: 90%;
       height: auto;
     }
     .info-qr {
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      color: #555;
-      word-wrap: break-word;
+      margin-top: 1rem;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #222;
+      background: #fff3cd;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #ffeeba;
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Escaneo e Inventario</h2>
-    <video id="preview" autoplay muted playsinline></video>
-    <div class="info-qr">Escanea una etiqueta con formato: <strong>Zona/...</strong></div>
+    <h2>Inventario Montilla</h2>
+    <video id="preview" autoplay playsinline></video>
+    <div class="info-qr">Escanea una etiqueta que contenga los datos separados por "/". Ejemplo: <strong>Zona/Producto/Medidas</strong></div>
 
     <form id="formulario">
       <label for="descripcion">Descripción</label>
-      <select id="descripcion">
-        <option value="">Cargando...</option>
-      </select>
+      <select id="descripcion"></select>
 
       <label for="codigo">Código</label>
       <input type="text" id="codigo" placeholder="Automático" readonly>
@@ -133,7 +138,7 @@
 
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbwCket6uwOyT6McMmoUw7zsQ0lEVIvc-CgBI24HD2ZK5ZcVKXaiDdPxXqh9HRMS6RKF/exec";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbz9KZu_6IwW_4Quvc-i5mJZNoI8RZnEza49yN4a9Vo/dev";
 
     let zonaLeida = "";
     let usuario = sessionStorage.getItem("usuario") || "";
@@ -147,49 +152,54 @@
       return texto.trim().toLowerCase().replace(/\s+/g, " ");
     }
 
-    async function cargarProductos() {
-      try {
-        const res = await fetch(scriptURL + "?productos=1");
-        const productos = await res.json();
-
-        descripcion.innerHTML = '<option value="">Selecciona</option>';
-        productos.forEach(item => {
+    fetch(scriptURL + "?productos=1")
+      .then(res => res.json())
+      .then(data => {
+        data.forEach(p => {
           const option = document.createElement("option");
-          option.value = item.descripcion;
-          option.textContent = item.descripcion;
-          option.dataset.codigo = item.codigo;
+          option.value = p.descripcion;
+          option.textContent = p.descripcion;
+          option.setAttribute("data-codigo", p.codigo);
           descripcion.appendChild(option);
         });
+      });
 
-        descripcion.addEventListener("change", () => {
-          const selected = descripcion.selectedOptions[0];
-          codigo.value = selected.dataset.codigo || "";
-        });
-      } catch (err) {
-        console.error("Error al cargar productos:", err);
+    descripcion.addEventListener("change", () => {
+      const selected = descripcion.selectedOptions[0];
+      codigo.value = selected ? selected.getAttribute("data-codigo") : "";
+    });
+
+    Html5Qrcode.getCameras().then(devices => {
+      const backCamera = devices.find(device => device.label.toLowerCase().includes("back")) || devices[0];
+      if (backCamera) {
+        const qrScanner = new Html5Qrcode("preview");
+        qrScanner.start(
+          backCamera.id,
+          { fps: 10, qrbox: 200 },
+          qrCodeMessage => {
+            try {
+              const partes = qrCodeMessage.split("/");
+              zonaLeida = normalizar(partes[0]);
+              if (zonaLeida !== normalizar(zonaPermitida)) {
+                mensaje.textContent = `No pertenece a área asignada (${partes[0]})`;
+                mensaje.className = "mensaje error";
+              } else {
+                mensaje.textContent = `Zona válida: ${partes[0]}`;
+                mensaje.className = "mensaje success";
+                window.navigator.vibrate(200);
+              }
+            } catch (err) {
+              console.error("Error al leer QR:", err);
+            }
+          },
+          error => {}
+        );
       }
-    }
-
-    new Html5Qrcode("preview").start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 200 },
-      qrCodeMessage => {
-        try {
-          const partes = qrCodeMessage.split("/");
-          zonaLeida = normalizar(partes[0]);
-          if (zonaLeida !== normalizar(zonaPermitida)) {
-            mensaje.textContent = `No pertenece a área asignada (${partes[0]})`;
-            mensaje.className = "mensaje error";
-          } else {
-            mensaje.textContent = `Zona válida: ${partes[0]}`;
-            mensaje.className = "mensaje success";
-          }
-        } catch (err) {
-          console.error("Error al leer QR:", err);
-        }
-      },
-      error => {}
-    );
+    }).catch(err => {
+      console.error("Error accediendo a la cámara:", err);
+      mensaje.textContent = "No se pudo acceder a la cámara.";
+      mensaje.className = "mensaje error";
+    });
 
     document.getElementById("formulario").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -235,8 +245,6 @@
         console.error(err);
       }
     });
-
-    window.onload = cargarProductos;
   </script>
 </body>
 </html>
